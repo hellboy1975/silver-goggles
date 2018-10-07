@@ -1,33 +1,56 @@
-import tcod as libtcod   
+import tcod as libtcod
+from entity import Entity
 from input_handlers import handle_keys
+from map_objects.game_map import GameMap
+from render_functions import clear_all, render_all
 
 def main():
+    """
+    The main game process
+    """
+
+    # these variables will define the dimensions of the console and map
     screen_width = 80
     screen_height = 50
+    map_width = 80
+    map_height = 45
 
-    player_x = int(screen_width / 2)
-    player_y = int(screen_height / 2)
+    # set the colours for the map blocks
+    colors = {
+        'dark_wall': libtcod.Color(0, 0, 100),
+        'dark_ground': libtcod.Color(50, 50, 150)
+    }
 
+    # create entity objects for the player and an NPC, then poke them in
+    # an array
+    player = Entity(int(screen_width / 2), int(screen_height / 2), '@', libtcod.white)
+    npc = Entity(int(screen_width / 2 - 5), int(screen_height / 2), '@', libtcod.yellow)
+    entities = [npc, player]
+
+    # set the default font and colour values for the console
     libtcod.console_set_custom_font(
-        'arial10x10.png', 
+        'arial10x10.png',
         libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
-
     libtcod.console_init_root(screen_width, screen_height, 'libtcod tutorial revised', False)
+    # move the console into a variable so that we can manipulate it a bit better
     con = libtcod.console_new(screen_width, screen_height)
 
+    # create the object which contains the map
+    game_map = GameMap(map_width, map_height)
+
+    # listen for the most recent Keyboard and Mouse events
     key = libtcod.Key()
     mouse = libtcod.Mouse()
 
+    # main game loop, will continue looping until some action closes the window
     while not libtcod.console_is_window_closed():
         libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS, key, mouse)
-        libtcod.console_set_default_foreground(con, libtcod.white)
-        libtcod.console_put_char(
-            con, player_x, player_y, '@', libtcod.BKGND_NONE)
-        libtcod.console_blit(con, 0, 0, screen_width, screen_height, 0, 0, 0)
+        render_all(con, entities, game_map,
+                   screen_width, screen_height, colors)
+
         libtcod.console_flush()
 
-        libtcod.console_put_char(
-            con, player_x, player_y, ' ', libtcod.BKGND_NONE)
+        clear_all(con, entities)
 
         action = handle_keys(key)
 
@@ -37,8 +60,8 @@ def main():
 
         if move:
             dx, dy = move
-            player_x += dx
-            player_y += dy
+            if not game_map.is_blocked(player.position_x + dx, player.position_y + dy):
+                player.move(dx, dy)
 
         if exit:
             return True
@@ -46,5 +69,5 @@ def main():
         if fullscreen:
             libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
 
-if __name__ == '__main__':     
+if __name__ == '__main__': 
     main()
