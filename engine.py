@@ -44,10 +44,15 @@ def main():
 
     # main game loop, will continue looping until some action closes the window
     while not libtcod.console_is_window_closed():
+        # check to see which events were received from the inputs
         libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS, key, mouse)
+
+        # main rendering command - calculates and paints the various elements 
+        # appearing in the console
         render_all(con, entities, game_map,
                    screen_width, screen_height, colors)
 
+        # flush the contents of the console to the screen
         libtcod.console_flush()
 
         clear_all(con, entities)
