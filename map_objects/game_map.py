@@ -47,8 +47,8 @@ class GameMap:
 
                 if num_rooms == 0:
                     # this is the first room, where the player starts at
-                    player.x = new_x
-                    player.y = new_y
+                    player.position_x = new_x
+                    player.position_y = new_y
                 else:
                     # all rooms after the first:
                     # connect it to the previous room with a tunnel

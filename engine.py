@@ -1,5 +1,6 @@
 import tcod as libtcod
 from entity import Entity
+from fov_functions import initialize_fov, recompute_fov
 from input_handlers import handle_keys
 from map_objects.game_map import GameMap
 from render_functions import clear_all, render_all
@@ -20,10 +21,16 @@ def main():
     room_min_size = 6
     max_rooms = 30
 
+    fov_algorithm = 0
+    fov_light_walls = True
+    fov_radius = 10
+
     # set the colours for the map blocks
     colors = {
         'dark_wall': libtcod.Color(0, 0, 100),
-        'dark_ground': libtcod.Color(50, 50, 150)
+        'dark_ground': libtcod.Color(50, 50, 150),
+        'light_wall': libtcod.Color(130, 110, 50),
+        'light_ground': libtcod.Color(200, 180, 50)
     }
 
     # create entity objects for the player and an NPC, then poke them in
@@ -45,6 +52,10 @@ def main():
     game_map.make_map(max_rooms, room_min_size, room_max_size,
                       map_width, map_height, player)
 
+    fov_recompute = True
+
+    fov_map = initialize_fov(game_map)
+
     # listen for the most recent Keyboard and Mouse events
     key = libtcod.Key()
     mouse = libtcod.Mouse()
@@ -54,10 +65,17 @@ def main():
         # check to see which events were received from the inputs
         libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS, key, mouse)
 
+        # compute the field of view values for the player
+        if fov_recompute:
+            recompute_fov(fov_map, player.position_x, player.position_y, fov_radius,
+                          fov_light_walls, fov_algorithm)
+
         # main rendering command - calculates and paints the various elements 
         # appearing in the console
-        render_all(con, entities, game_map,
+        render_all(con, entities, game_map, fov_map, fov_recompute,
                    screen_width, screen_height, colors)
+
+        fov_recompute = False
 
         # flush the contents of the console to the screen
         libtcod.console_flush()
@@ -74,6 +92,8 @@ def main():
             dx, dy = move
             if not game_map.is_blocked(player.position_x + dx, player.position_y + dy):
                 player.move(dx, dy)
+
+                fov_recompute = True
 
         if exit:
             return True
