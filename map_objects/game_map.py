@@ -1,8 +1,11 @@
 import libtcodpy as libtcod
 from random import randint
+from components.fighter import Fighter
+from components.ai import BasicMonster
 from map_objects.rectangle import Rect
 from map_objects.tile import Tile
 from entity import Entity
+from render_functions import RenderOrder
 
 class GameMap:
     def __init__(self, width, height):
@@ -104,9 +107,17 @@ class GameMap:
 
             if not any([entity for entity in entities if entity.position_x == x and entity.position_y == y]):
                 if randint(0, 100) < 80:
-                    monster = Entity(x, y, 'o', libtcod.desaturated_green, 'Ork', blocks=True)
+                    fighter_component = Fighter(hp=10, defense=0, power=3)
+                    ai_component = BasicMonster()
+
+                    monster = Entity(x, y, 'o', libtcod.desaturated_green, 'Orc', blocks=True,
+                                     render_order=RenderOrder.ACTOR, fighter=fighter_component, ai=ai_component)
                 else:
-                    monster = Entity(x, y, 'T', libtcod.darker_green, 'Troll', blocks=True)
+                    fighter_component = Fighter(hp=16, defense=1, power=4)
+                    ai_component = BasicMonster()
+                    
+                    monster = Entity(x, y, 'T', libtcod.darker_green, 'Troll', blocks=True, fighter=fighter_component,
+                                     render_order=RenderOrder.ACTOR, ai=ai_component)
 
                 entities.append(monster)
 
